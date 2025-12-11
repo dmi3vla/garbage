@@ -44,8 +44,6 @@ if command -v eselect >/dev/null 2>&1; then
 else
     echo "[!] eselect not found, skipping default python switch."
 fi
-
 echo "[*] Cleaning up..."
 rm -rf "$WORKDIR"
-
 echo "[✓] Python ${TARGET_PY_VER} successfully extracted and installed."
