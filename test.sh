@@ -2,7 +2,7 @@
 set -e
 
 # ========== CONFIG ==========
-STAGE_URL="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-systemd/stage3-amd64-systemd.tar.xz"
+STAGE_URL="https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-systemd/stage3-amd64-systemd-20251207T170056Z.tar.xz"
 MOUNT=/mnt/gentoo
 DISK="/dev/sda"
 BOOT_SIZE="512M"
