@@ -14,12 +14,11 @@ ssh-keygen -A
 # Create user "admin" with home directory and bash shell
 useradd -m -G users,wheel -s /bin/bash admin
 
-# Set password for user admin
-echo "Set password for user admin:"
-passwd admin
+# Set default password for admin user (non-interactive)
+echo "admin:admin" | chpasswd
 
-# Add user to wheel group (for sudo)
-gpasswd -a admin wheel
+# Allow admin user to use sudo without password
+echo "admin ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/admin
 
 # Enable sshd on boot and start it (OpenRC)
 rc-update add sshd default
@@ -28,4 +27,6 @@ rc-update add sshd default
 # Display sshd status
 rc-status
 
-echo "[✓] OpenSSH installed and configured. User 'admin' created."
+echo "[✓] OpenSSH installed and configured."
+echo "[✓] User 'admin' created with password 'admin'"
+echo "[✓] SSH daemon started and ready for connections"
