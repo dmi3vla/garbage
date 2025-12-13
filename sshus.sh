@@ -1,28 +1,31 @@
 #!/bin/bash
 # setup_gentoo_ssh.sh
-# Скрипт для установки OpenSSH и создания пользователя в Gentoo LiveCD
+# Script to install OpenSSH and create a user on Gentoo LiveCD
 
-# Обновляем дерево пакетов
+# Update the package tree
 emerge --sync
 
-# Устанавливаем OpenSSH и sudo
+# Install OpenSSH and sudo
 emerge --ask net-misc/openssh app-admin/sudo
 
-# Создаём пользователя "admin" с домашним каталогом и оболочкой bash
+# Generate SSH host keys (required before starting sshd)
+ssh-keygen -A
+
+# Create user "admin" with home directory and bash shell
 useradd -m -G users,wheel -s /bin/bash admin
 
-# Устанавливаем пароль для пользователя
-echo "Задайте пароль для пользователя admin:"
+# Set password for user admin
+echo "Set password for user admin:"
 passwd admin
 
-# Добавляем пользователя в группу wheel (для sudo)
+# Add user to wheel group (for sudo)
 gpasswd -a admin wheel
 
-# Включаем sshd в автозагрузку и запускаем его (OpenRC)
+# Enable sshd on boot and start it (OpenRC)
 rc-update add sshd default
 /etc/init.d/sshd start
 
-# Выводим статус sshd
+# Display sshd status
 rc-status
 
-echo "[✓] OpenSSH установлен и настроен. Пользователь 'admin' создан."
+echo "[✓] OpenSSH installed and configured. User 'admin' created."
