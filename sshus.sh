@@ -17,6 +17,11 @@ useradd -m -G users,wheel -s /bin/bash admin
 # Set default password for admin user (non-interactive)
 echo "admin:admin" | chpasswd
 
+# Configure SSH to allow password authentication
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+
 # Allow admin user to use sudo without password
 echo "admin ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/admin
 
