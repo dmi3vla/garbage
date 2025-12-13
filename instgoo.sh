@@ -7,7 +7,9 @@ set -e
 # Переменные
 DISK="/dev/sda"
 MOUNT_POINT="/mnt/gentoo"
-STAGE3_URL="https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/latest-stage3-amd64-systemd.tar.xz"
+# Используем несколько зеркал как fallback
+STAGE3_URL="https://gentoo.osuosl.org/releases/amd64/autobuilds/latest-stage3-amd64-systemd.tar.xz"
+STAGE3_URL_BACKUP="https://mirror.leaseweb.com/gentoo/releases/amd64/autobuilds/latest-stage3-amd64-systemd.tar.xz"
 
 echo "=== Установка Gentoo Linux ==="
 
@@ -33,7 +35,16 @@ mount ${DISK}1 $MOUNT_POINT/boot
 # 3. Скачивание и распаковка stage3
 echo "=== Скачивание stage3 ==="
 cd $MOUNT_POINT
-wget $STAGE3_URL -O stage3.tar.xz
+
+# Пытаемся скачать с основного зеркала, если не удалось - с backup
+if wget --timeout=10 "$STAGE3_URL" -O stage3.tar.xz 2>/dev/null; then
+    echo "[✓] Скачано с основного зеркала"
+elif wget --timeout=10 "$STAGE3_URL_BACKUP" -O stage3.tar.xz 2>/dev/null; then
+    echo "[✓] Скачано с backup зеркала"
+else
+    echo "[✗] Не удалось скачать stage3!"
+    exit 1
+fi
 
 echo "=== Распаковка stage3 ==="
 tar xpf stage3.tar.xz --xattrs-include='.*' --numeric-owner
