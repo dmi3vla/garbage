@@ -90,6 +90,12 @@ eselect locale set en_US.utf8
 echo "[*] Installing kernel..."
 emerge sys-kernel/gentoo-kernel-bin
 
+echo "[*] Installing initramfs generator..."
+emerge sys-kernel/dracut
+
+echo "[*] Generating initramfs..."
+dracut --hostonly --hostonly-cmdline --add-drivers "ext4 vfat" -f
+
 echo "[*] Setting hostname..."
 echo "gentoo-box" > /etc/hostname
 
