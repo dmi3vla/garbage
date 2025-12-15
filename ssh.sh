@@ -11,6 +11,12 @@ useradd -m -s /bin/bash admin 2>/dev/null || true
 # Set default password for admin user (non-interactive)
 echo "admin:admin" | chpasswd
 
+# Install sudo
+emerge sudo
+
+# Add admin user to sudo group
+usermod -aG sudo admin
+
 # Configure SSH to allow password authentication
 sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
