@@ -25,7 +25,17 @@ export PS1="(chroot) $PS1"
 echo "[*] Checking kernel and initramfs..."
 ls -la /boot/vmlinuz* /boot/initramfs* 2>/dev/null || echo "[-] Kernel or initramfs missing!"
 
-echo "[*] Checking /boot/grub/grub.cfg..."
+echo "[*] Reinstalling kernel..."
+emerge --oneshot sys-kernel/gentoo-kernel-bin
+
+echo "[*] Checking if dracut is installed..."
+which dracut >/dev/null || emerge sys-kernel/dracut
+
+echo "[*] Generating initramfs..."
+dracut --hostonly --hostonly-cmdline --add-drivers "ext4 vfat" -f
+
+echo "[*] Verifying kernel and initramfs..."
+ls -la /boot/vmlinuz* /boot/initramfs*
 if [ ! -f /boot/grub/grub.cfg ]; then
     echo "[-] grub.cfg not found, creating..."
     mkdir -p /boot/grub
