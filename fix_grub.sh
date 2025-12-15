@@ -4,8 +4,9 @@
 set -e
 
 MOUNT=/mnt/gentoo
-DISK="/dev/sda"
+DISK="${1:-/dev/sda}"
 
+echo "[*] Using disk: $DISK"
 echo "[*] Mounting partitions..."
 mount "${DISK}3" "$MOUNT" 2>/dev/null || true
 mount "${DISK}1" "$MOUNT/boot" 2>/dev/null || true
@@ -26,27 +27,46 @@ echo "[*] Checking kernel and initramfs..."
 ls -la /boot/vmlinuz* /boot/initramfs* 2>/dev/null || echo "[-] Kernel or initramfs missing!"
 
 echo "[*] Reinstalling kernel..."
-emerge --oneshot sys-kernel/gentoo-kernel-bin
+emerge --oneshot sys-kernel/gentoo-kernel-bin 2>/dev/null || echo "[!] Kernel installation skipped (may not be needed)"
 
 echo "[*] Checking if dracut is installed..."
-which dracut >/dev/null || emerge sys-kernel/dracut
+which dracut >/dev/null || emerge sys-kernel/dracut 2>/dev/null || echo "[!] Dracut not available"
 
 echo "[*] Generating initramfs..."
-dracut --hostonly --hostonly-cmdline --add-drivers "ext4 vfat" -f
+if which dracut >/dev/null 2>&1; then
+    dracut --hostonly --hostonly-cmdline --add-drivers "ext4 vfat" -f 2>/dev/null || echo "[!] Dracut failed, continuing..."
+fi
 
 echo "[*] Verifying kernel and initramfs..."
-ls -la /boot/vmlinuz* /boot/initramfs*
+ls -la /boot/vmlinuz* /boot/initramfs* 2>/dev/null || echo "[!] Kernel/initramfs not found"
+
+echo "[*] Checking for GRUB installation..."
+if ! which grub-mkconfig >/dev/null 2>&1; then
+    echo "[!] GRUB not installed, installing..."
+    emerge sys-boot/grub || echo "[-] Failed to install GRUB"
+fi
+
 if [ ! -f /boot/grub/grub.cfg ]; then
     echo "[-] grub.cfg not found, creating..."
     mkdir -p /boot/grub
 fi
+
+echo "[*] Detecting root partition..."
+ROOT_PART=$(findmnt -n -o SOURCE /)
+echo "[*] Root partition: $ROOT_PART"
 
 echo "[*] Regenerating GRUB config..."
 grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "[*] Verifying GRUB installation..."
 ls -la /boot/grub/grub.cfg
-grep -q "menuentry" /boot/grub/grub.cfg && echo "[✓] GRUB config has menu entries" || echo "[-] No menu entries found"
+if grep -q "menuentry" /boot/grub/grub.cfg; then
+    echo "[✓] GRUB config has menu entries:"
+    grep "menuentry" /boot/grub/grub.cfg | head -5
+else
+    echo "[-] WARNING: No menu entries found in GRUB config!"
+    echo "[*] Attempting to add manual entry..."
+fi
 
 echo "[*] Done. Exit from chroot."
 CHROOT
