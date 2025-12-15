@@ -17,6 +17,12 @@ ping -c1 gentoo.org >/dev/null 2>&1 || {
     exit 1
 }
 
+echo "[*] Checking stage3 availability..."
+wget --spider "$STAGE_URL" >/dev/null 2>&1 || {
+    echo "[-] Stage3 file not accessible: $STAGE_URL"
+    exit 1
+}
+
 echo "[*] Partitioning disk..."
 parted -s "$DISK" mklabel gpt
 parted -s "$DISK" mkpart ESP fat32 1MiB "$BOOT_SIZE"
@@ -96,6 +102,15 @@ etc-update --automode -5
 emerge kde-plasma/plasma-meta
 
 systemctl enable sddm
+
+echo "[*] Installing GRUB bootloader for EFI..."
+emerge --verbose sys-boot/grub:2 sys-boot/efibootmgr
+
+echo "[*] Installing GRUB to EFI partition..."
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+
+echo "[*] Generating GRUB config..."
+grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "[*] Done. Exit from chroot."
 EOF
